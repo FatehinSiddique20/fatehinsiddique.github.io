@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useScrollReveal } from './useScrollReveal';
 import { Brain, TrendingUp, Database, Users, BarChart3, Zap } from 'lucide-react';
@@ -48,6 +48,59 @@ const superpowers = [
   },
 ];
 
+const EASING = [0.22, 1, 0.36, 1];
+
+function SuperCard({ sp, index, isVisible }) {
+  const cardRef = useRef(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0, gx: 50, gy: 50 });
+
+  const onMouseMove = useCallback((e) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    setTilt({ x: (y - 0.5) * -8, y: (x - 0.5) * 8, gx: x * 100, gy: y * 100 });
+  }, []);
+
+  const onMouseLeave = useCallback(() => {
+    setTilt({ x: 0, y: 0, gx: 50, gy: 50 });
+  }, []);
+
+  return (
+    <motion.div
+      ref={cardRef}
+      initial={{ opacity: 0, y: 40, scale: 0.96 }}
+      animate={isVisible ? { opacity: 1, y: 0, scale: 1 } : {}}
+      transition={{ duration: 0.65, delay: 0.09 * index, ease: EASING }}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      style={{
+        transform: `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+        transition: tilt.x === 0 ? 'transform 0.6s cubic-bezier(0.22,1,0.36,1)' : 'transform 0.1s ease',
+      }}
+      className={`group relative glass rounded-2xl p-7 hover:shadow-2xl ${sp.glow} transition-shadow duration-500 cursor-default overflow-hidden`}
+    >
+      <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${sp.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+      {/* Spotlight */}
+      <div
+        className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{ background: `radial-gradient(circle at ${tilt.gx}% ${tilt.gy}%, rgba(99,102,241,0.08) 0%, transparent 65%)` }}
+      />
+      <div className="relative z-10">
+        <motion.div
+          className="w-12 h-12 rounded-xl bg-muted/60 flex items-center justify-center mb-5"
+          whileHover={{ scale: 1.12 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+        >
+          <sp.icon className="w-6 h-6 text-primary" />
+        </motion.div>
+        <h3 className="font-heading font-bold text-lg mb-3 text-foreground">{sp.title}</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed">{sp.description}</p>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function SuperpowersSection() {
   const [ref, isVisible] = useScrollReveal(0.1);
 
@@ -57,7 +110,7 @@ export default function SuperpowersSection() {
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.8, ease: EASING }}
           className="text-center mb-16"
         >
           <span className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-4 block">Expertise</span>
@@ -68,23 +121,7 @@ export default function SuperpowersSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {superpowers.map((sp, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 40 }}
-              animate={isVisible ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.1 * i }}
-              className={`group relative glass rounded-2xl p-7 hover:shadow-2xl ${sp.glow} transition-all duration-500 hover:-translate-y-1 cursor-default`}
-              style={{ transformStyle: 'preserve-3d' }}
-            >
-              <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${sp.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-              <div className="relative z-10">
-                <div className="w-12 h-12 rounded-xl bg-muted/60 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
-                  <sp.icon className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="font-heading font-bold text-lg mb-3 text-foreground">{sp.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{sp.description}</p>
-              </div>
-            </motion.div>
+            <SuperCard key={i} sp={sp} index={i} isVisible={isVisible} />
           ))}
         </div>
       </div>
