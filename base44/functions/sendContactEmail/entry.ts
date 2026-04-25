@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 // IMPORTANT: Replace this with your Google Sheet ID
 // (found in the sheet URL: https://docs.google.com/spreadsheets/d/SHEET_ID/edit)
-const SHEET_ID = 'YOUR_GOOGLE_SHEET_ID';
+const SHEET_ID = '1JZQyilzoOCQZhsJK-jZrDMivQ9m7ffLdXGKYzvranOs';
 const SHEET_NAME = 'Contacts'; // Name of the tab in your sheet
 
 Deno.serve(async (req) => {
