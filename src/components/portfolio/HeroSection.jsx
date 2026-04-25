@@ -41,9 +41,15 @@ function MagneticButton({ children, className, href, onClick }) {
   );
 }
 
+const RESUME_URL = 'https://media.base44.com/files/public/69ecf4e8453eee0057e250fb/e392c0f28_Fatehin_Resume_2026.pdf';
+
 function handleResumeDownload() {
   base44.analytics.track({ eventName: 'resume_download_click', properties: { source: 'hero' } });
-  window.open('#', '_blank');
+  const a = document.createElement('a');
+  a.href = RESUME_URL;
+  a.download = 'Fatehin_Resume_2026.pdf';
+  a.target = '_blank';
+  a.click();
 }
 
 export default function HeroSection() {

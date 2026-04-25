@@ -1,6 +1,8 @@
 import React from 'react';
 import { Linkedin, Mail, FileDown } from 'lucide-react';
 
+const RESUME_URL = 'https://media.base44.com/files/public/69ecf4e8453eee0057e250fb/e392c0f28_Fatehin_Resume_2026.pdf';
+
 export default function Footer() {
   return (
     <footer className="relative py-16 border-t border-border/30">
@@ -27,7 +29,10 @@ export default function Footer() {
             Email
           </a>
           <a
-            href="#"
+            href={RESUME_URL}
+            download="Fatehin_Resume_2026.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl glass text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-muted/40 transition-all duration-300"
           >
             <FileDown className="w-4 h-4" />

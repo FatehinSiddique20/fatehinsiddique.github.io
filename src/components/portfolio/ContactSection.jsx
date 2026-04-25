@@ -53,9 +53,15 @@ const contactCards = [
   },
 ];
 
+const RESUME_URL = 'https://media.base44.com/files/public/69ecf4e8453eee0057e250fb/e392c0f28_Fatehin_Resume_2026.pdf';
+
 function handleResumeDownload() {
   base44.analytics.track({ eventName: 'resume_download_click', properties: { source: 'contact' } });
-  window.open('#', '_blank');
+  const a = document.createElement('a');
+  a.href = RESUME_URL;
+  a.download = 'Fatehin_Resume_2026.pdf';
+  a.target = '_blank';
+  a.click();
 }
 
 export default function ContactSection() {
@@ -66,9 +72,13 @@ export default function ContactSection() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
-    await new Promise(r => setTimeout(r, 1500));
-    toast.success("Message sent! I'll get back to you soon.");
-    setForm({ name: '', email: '', company: '', purpose: '', message: '' });
+    try {
+      await base44.functions.invoke('sendContactEmail', form);
+      toast.success("Message sent! I'll get back to you soon.");
+      setForm({ name: '', email: '', company: '', purpose: '', message: '' });
+    } catch (err) {
+      toast.error('Something went wrong. Please try emailing me directly at fatehin20@gmail.com');
+    }
     setSending(false);
   };
 

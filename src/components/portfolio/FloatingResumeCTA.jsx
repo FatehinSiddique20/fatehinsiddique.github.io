@@ -15,9 +15,15 @@ export default function FloatingResumeCTA() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  const RESUME_URL = 'https://media.base44.com/files/public/69ecf4e8453eee0057e250fb/e392c0f28_Fatehin_Resume_2026.pdf';
+
   const handleClick = () => {
     base44.analytics.track({ eventName: 'resume_download_click', properties: { source: 'floating_cta' } });
-    window.open('#', '_blank');
+    const a = document.createElement('a');
+    a.href = RESUME_URL;
+    a.download = 'Fatehin_Resume_2026.pdf';
+    a.target = '_blank';
+    a.click();
   };
 
   return (
