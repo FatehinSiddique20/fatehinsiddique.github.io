@@ -36,7 +36,7 @@ function CustomBarTooltip({ active, payload }) {
   const v = payload[0].value;
   return (
     <div className="glass rounded-lg px-3 py-2 text-xs text-foreground border border-border/60">
-      <p className="font-semibold">{v < 1 ? '< 1 second' : `${v} hours`}</p>
+      <p className="font-semibold">{v < 1 ? '< 2 mins' : `${v} hours`}</p>
     </div>
   );
 }
