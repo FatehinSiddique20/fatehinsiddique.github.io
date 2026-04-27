@@ -4,9 +4,8 @@ import HeroSection from './HeroSection';
 import TheScaleSection from './TheScaleSection';
 
 /**
- * Scroll container is 200vh.
- * Scale sits sticky at top (bottom layer).
- * Hero sits on top as an absolute overlay, slides upward as you scroll.
+ * Layer 1 (top): Hero — slides UP and away on scroll
+ * Layer 2 (bottom): Scale — stays fixed underneath, revealed as Hero leaves
  */
 export default function HeroScaleTransition() {
   const containerRef = useRef(null);
@@ -16,27 +15,21 @@ export default function HeroScaleTransition() {
     offset: ['start start', 'end start'],
   });
 
-  // 0 → scroll starts, 1 → container top hits viewport top (scrolled 100vh)
-  const heroY = useTransform(scrollYProgress, [0, 1], ['0vh', '-100vh']);
+  // Hero slides up and out
+  const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '-100%']);
 
   return (
-    <div ref={containerRef} style={{ height: '200vh', position: 'relative' }}>
-
-      {/* BOTTOM LAYER: Scale — sticky, always visible underneath */}
-      <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }}>
+    // Container is 200vh so there's scroll room for the transition
+    <div ref={containerRef} style={{ height: '200vh' }}>
+      {/* Scale section — fixed at top, always underneath */}
+      <div className="sticky top-0 h-screen overflow-hidden">
         <TheScaleSection />
       </div>
 
-      {/* TOP LAYER: Hero — absolute, starts at top, slides up on scroll */}
+      {/* Hero — absolutely positioned on top, slides up on scroll */}
       <motion.div
-        style={{
-          y: heroY,
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          zIndex: 10,
-        }}
+        style={{ y: heroY }}
+        className="fixed top-0 left-0 w-full z-20 will-change-transform"
       >
         <HeroSection />
       </motion.div>
