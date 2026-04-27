@@ -1,6 +1,6 @@
 import React from 'react';
 import Navbar from '../components/portfolio/Navbar';
-import HeroScaleTransition from '../components/portfolio/HeroScaleTransition';
+import HeroScaleTransition from '../components/portfolio/HeroScaleTransition.jsx';
 import IndustriesSection from '../components/portfolio/IndustriesSection';
 import ProjectsSection from '../components/portfolio/ProjectsSection';
 import WhyHireMeSection from '../components/portfolio/WhyHireMeSection';
