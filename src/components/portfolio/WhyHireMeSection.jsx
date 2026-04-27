@@ -14,10 +14,10 @@ const turnaroundData = [
 ];
 
 const mauData = [
-  { month: 'Jan', mau: 62 }, { month: 'Feb', mau: 68 }, { month: 'Mar', mau: 71 },
-  { month: 'Apr', mau: 75 }, { month: 'May', mau: 79 }, { month: 'Jun', mau: 84 },
-  { month: 'Jul', mau: 87 }, { month: 'Aug', mau: 90 }, { month: 'Sep', mau: 95 },
-  { month: 'Oct', mau: 98 }, { month: 'Nov', mau: 103 }, { month: 'Dec', mau: 109 },
+  { month: 'Jan', mau: 4.0 }, { month: 'Feb', mau: 4.1 }, { month: 'Mar', mau: 4.25 },
+  { month: 'Apr', mau: 4.4 }, { month: 'May', mau: 4.7 }, { month: 'Jun', mau: 5.0 },
+  { month: 'Jul', mau: 4.9 }, { month: 'Aug', mau: 4.85 }, { month: 'Sep', mau: 4.82 },
+  { month: 'Oct', mau: 4.8 }, { month: 'Nov', mau: 4.9 }, { month: 'Dec', mau: 4.9 },
 ];
 
 const stockData = [{ name: 'Reduction', value: 14, fill: '#10b981' }, { name: 'Remaining', value: 86, fill: '#1f2937' }];
@@ -46,7 +46,7 @@ function CustomAreaTooltip({ active, payload, label }) {
   return (
     <div className="glass rounded-lg px-3 py-2 text-xs text-foreground border border-border/60">
       <p className="text-muted-foreground">{label}</p>
-      <p className="font-semibold text-cyan-400">Index: {payload[0].value}</p>
+      <p className="font-semibold text-cyan-400">{payload[0].value}M MAU</p>
     </div>
   );
 }
@@ -187,7 +187,7 @@ export default function WhyHireMeSection() {
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="month" tick={{ fill: '#9ca3af', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis hide domain={['auto', 'auto']} />
+                <YAxis hide domain={[3.8, 5.1]} />
                 <Tooltip content={<CustomAreaTooltip />} cursor={{ stroke: 'rgba(6,182,212,0.3)', strokeWidth: 1 }} />
                 <Area type="monotone" dataKey="mau" stroke="#06b6d4" strokeWidth={2.5} fill="url(#mauGrad)" dot={false} />
               </AreaChart>
