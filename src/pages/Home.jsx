@@ -5,7 +5,6 @@ import TheScaleSection from '../components/portfolio/TheScaleSection';
 import IndustriesSection from '../components/portfolio/IndustriesSection';
 import ProjectsSection from '../components/portfolio/ProjectsSection';
 import WhyHireMeSection from '../components/portfolio/WhyHireMeSection';
-import ImpactSection from '../components/portfolio/ImpactSection';
 import SkillGalaxy from '../components/portfolio/SkillGalaxy';
 import ExperienceSection from '../components/portfolio/ExperienceSection';
 import TeamPlayerSection from '../components/portfolio/TeamPlayerSection';
@@ -29,9 +28,7 @@ export default function Home() {
       <ProjectsSection />
       {/* 5. Why Hire Me — animated proof charts */}
       <WhyHireMeSection />
-      {/* 6. The Impact — animated counters */}
-      <ImpactSection />
-      {/* 7. Skill Galaxy — interactive 3D orbs */}
+      {/* 6. Skill Galaxy — interactive 3D orbs */}
       <SkillGalaxy />
       {/* 8. Experience timeline */}
       <ExperienceSection />
