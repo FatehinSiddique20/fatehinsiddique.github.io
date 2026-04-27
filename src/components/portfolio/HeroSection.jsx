@@ -357,93 +357,108 @@ function MetricCard({ icon: Icon, value, title, subtitle, accent, sparkline, del
   );
 }
 
-// ── Sound toggle ───────────────────────────────────────────────────────────────
-// Multiple fallback ambient URLs
-const AMBIENT_URLS = [
-  'https://cdn.pixabay.com/download/audio/2024/10/29/audio_351305.mp3',
-  'https://assets.mixkit.co/music/preview/mixkit-deep-urban-623.mp3',
-  'https://assets.mixkit.co/sfx/preview/mixkit-sci-fi-ambience-771.mp3',
-];
+// ── YouTube ambient sound (hidden iframe, starts at 6:13 = 373s) ───────────────
+// Video: https://www.youtube.com/watch?v=ce0cDkNYohk
+const YT_VIDEO_ID = 'ce0cDkNYohk';
+const YT_START_SEC = 373; // 6:13
 
 function SoundToggle() {
-  const [on, setOn] = useState(false);
-  const audioRef = useRef(null);
-  const onRef = useRef(false);
+  const [muted, setMuted] = useState(false); // starts unmuted (playing)
+  const iframeRef = useRef(null);
+  const playerRef = useRef(null);
+  const readyRef = useRef(false);
 
   useEffect(() => {
-    let audio = null;
-    let urlIndex = 0;
+    // Load YouTube IFrame API
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(tag);
+    }
 
-    const tryLoad = (idx) => {
-      if (idx >= AMBIENT_URLS.length) return;
-      audio = new Audio(AMBIENT_URLS[idx]);
-      audio.loop = true;
-      audio.volume = 0;
-      audio.crossOrigin = 'anonymous';
-      audio.onerror = () => tryLoad(idx + 1);
-      audioRef.current = audio;
+    const initPlayer = () => {
+      playerRef.current = new window.YT.Player('yt-ambient-player', {
+        videoId: YT_VIDEO_ID,
+        playerVars: {
+          autoplay: 1,
+          loop: 1,
+          playlist: YT_VIDEO_ID,
+          start: YT_START_SEC,
+          controls: 0,
+          disablekb: 1,
+          fs: 0,
+          modestbranding: 1,
+          rel: 0,
+        },
+        events: {
+          onReady: (e) => {
+            readyRef.current = true;
+            e.target.unMute();
+            e.target.setVolume(18);
+            e.target.playVideo();
+          },
+        },
+      });
     };
 
-    tryLoad(urlIndex);
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      window.onYouTubeIframeAPIReady = initPlayer;
+    }
 
-    const handleVisibility = () => {
-      const a = audioRef.current;
-      if (!a) return;
-      if (document.hidden && !a.paused) a.pause();
-      else if (!document.hidden && onRef.current) a.play().catch(() => {});
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-      if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
+      if (playerRef.current && playerRef.current.destroy) {
+        playerRef.current.destroy();
+      }
     };
   }, []);
 
-  const toggle = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (!on) {
-      audio.volume = 0;
-      try { await audio.play(); } catch (e) { return; }
-      onRef.current = true;
-      let v = 0;
-      const fade = setInterval(() => {
-        v = Math.min(v + 0.008, 0.18);
-        audio.volume = v;
-        if (v >= 0.18) clearInterval(fade);
-      }, 100);
-      setOn(true);
+  const toggle = () => {
+    const p = playerRef.current;
+    if (!p || !readyRef.current) return;
+    if (!muted) {
+      p.mute();
+      setMuted(true);
     } else {
-      onRef.current = false;
-      let v = audio.volume;
-      const fade = setInterval(() => {
-        v = Math.max(v - 0.02, 0);
-        audio.volume = v;
-        if (v <= 0) { clearInterval(fade); audio.pause(); }
-      }, 60);
-      setOn(false);
+      p.unMute();
+      p.setVolume(18);
+      setMuted(false);
     }
   };
 
+  const on = !muted;
+
   return (
-    <motion.button
-      onClick={toggle}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 3, duration: 0.8 }}
-      whileHover={{ scale: 1.05 }}
-      className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-mono font-medium"
-      style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(14px)', border: `1px solid ${on ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.1)'}`, color: on ? '#06b6d4' : 'rgba(255,255,255,0.4)' }}
-    >
-      <motion.div className="flex gap-0.5 items-end h-3" animate={on ? { opacity: 1 } : { opacity: 0.4 }}>
-        {[2, 4, 3, 5, 2].map((h, i) => (
-          <motion.div key={i} className="w-0.5 rounded-full" style={{ background: on ? '#06b6d4' : '#fff', height: h * 2 }}
-            animate={on ? { scaleY: [1, 1.8, 0.6, 1.4, 1] } : { scaleY: 1 }}
-            transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.12, ease: 'easeInOut' }} />
-        ))}
-      </motion.div>
-      Sound: {on ? 'On' : 'Off'}
-    </motion.button>
+    <>
+      {/* Hidden YouTube iframe */}
+      <div
+        style={{ position: 'fixed', bottom: -1000, left: -1000, width: 1, height: 1, pointerEvents: 'none', opacity: 0 }}
+        aria-hidden
+      >
+        <div id="yt-ambient-player" />
+      </div>
+
+      {/* Sound toggle button */}
+      <motion.button
+        onClick={toggle}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 3, duration: 0.8 }}
+        whileHover={{ scale: 1.05 }}
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-mono font-medium"
+        style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(14px)', border: `1px solid ${on ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.1)'}`, color: on ? '#06b6d4' : 'rgba(255,255,255,0.4)' }}
+      >
+        <motion.div className="flex gap-0.5 items-end h-3" animate={on ? { opacity: 1 } : { opacity: 0.4 }}>
+          {[2, 4, 3, 5, 2].map((h, i) => (
+            <motion.div key={i} className="w-0.5 rounded-full" style={{ background: on ? '#06b6d4' : '#fff', height: h * 2 }}
+              animate={on ? { scaleY: [1, 1.8, 0.6, 1.4, 1] } : { scaleY: 1 }}
+              transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.12, ease: 'easeInOut' }} />
+          ))}
+        </motion.div>
+        Sound: {on ? 'On' : 'Off'}
+      </motion.button>
+    </>
   );
 }
 
