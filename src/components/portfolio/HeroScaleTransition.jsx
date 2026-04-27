@@ -1,48 +1,38 @@
-import React, { useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import HeroSection from './HeroSection';
 import TheScaleSection from './TheScaleSection';
 
-gsap.registerPlugin(ScrollTrigger);
-
+/**
+ * Layer 1 (top): Hero — slides UP and away on scroll
+ * Layer 2 (bottom): Scale — stays fixed underneath, revealed as Hero leaves
+ */
 export default function HeroScaleTransition() {
-  const heroRef = useRef(null);
+  const containerRef = useRef(null);
 
-  useEffect(() => {
-    const hero = heroRef.current;
-    if (!hero) return;
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start start', 'end start'],
+  });
 
-    const tween = gsap.to(hero, {
-      yPercent: -100,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: hero,
-        start: 'top top',
-        end: '+=100%',
-        scrub: true,
-        pin: true,
-        anticipatePin: 1,
-      },
-    });
-
-    return () => {
-      tween.scrollTrigger?.kill();
-      tween.kill();
-    };
-  }, []);
+  // Hero slides up and out
+  const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '-100%']);
 
   return (
-    <div style={{ position: 'relative' }}>
-      {/* Scale section sits beneath the hero */}
-      <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden', zIndex: 1 }}>
+    // Container is 200vh so there's scroll room for the transition
+    <div ref={containerRef} style={{ height: '200vh' }}>
+      {/* Scale section — fixed at top, always underneath */}
+      <div className="sticky top-0 h-screen overflow-hidden">
         <TheScaleSection />
       </div>
 
-      {/* Hero pinned on top, slides up via GSAP */}
-      <div ref={heroRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', zIndex: 2 }}>
+      {/* Hero — absolutely positioned on top, slides up on scroll */}
+      <motion.div
+        style={{ y: heroY }}
+        className="fixed top-0 left-0 w-full z-20 will-change-transform"
+      >
         <HeroSection />
-      </div>
+      </motion.div>
     </div>
   );
 }
