@@ -358,25 +358,44 @@ function MetricCard({ icon: Icon, value, title, subtitle, accent, sparkline, del
 }
 
 // ── Sound toggle ───────────────────────────────────────────────────────────────
+// Multiple fallback ambient URLs
+const AMBIENT_URLS = [
+  'https://cdn.pixabay.com/download/audio/2024/10/29/audio_351305.mp3',
+  'https://assets.mixkit.co/music/preview/mixkit-deep-urban-623.mp3',
+  'https://assets.mixkit.co/sfx/preview/mixkit-sci-fi-ambience-771.mp3',
+];
+
 function SoundToggle() {
   const [on, setOn] = useState(false);
   const audioRef = useRef(null);
+  const onRef = useRef(false);
 
   useEffect(() => {
-    const audio = new Audio('https://cdn.pixabay.com/download/audio/2022/03/10/audio_97e92c50b8.mp3');
-    audio.loop = true;
-    audio.volume = 0;
-    audioRef.current = audio;
+    let audio = null;
+    let urlIndex = 0;
+
+    const tryLoad = (idx) => {
+      if (idx >= AMBIENT_URLS.length) return;
+      audio = new Audio(AMBIENT_URLS[idx]);
+      audio.loop = true;
+      audio.volume = 0;
+      audio.crossOrigin = 'anonymous';
+      audio.onerror = () => tryLoad(idx + 1);
+      audioRef.current = audio;
+    };
+
+    tryLoad(urlIndex);
 
     const handleVisibility = () => {
-      if (document.hidden && !audio.paused) audio.pause();
-      else if (!document.hidden && on) audio.play().catch(() => {});
+      const a = audioRef.current;
+      if (!a) return;
+      if (document.hidden && !a.paused) a.pause();
+      else if (!document.hidden && onRef.current) a.play().catch(() => {});
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
-      audio.pause();
-      audio.src = '';
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
     };
   }, []);
 
@@ -385,17 +404,17 @@ function SoundToggle() {
     if (!audio) return;
     if (!on) {
       audio.volume = 0;
-      await audio.play().catch(() => {});
-      // Fade in
+      try { await audio.play(); } catch (e) { return; }
+      onRef.current = true;
       let v = 0;
       const fade = setInterval(() => {
-        v = Math.min(v + 0.01, 0.2);
+        v = Math.min(v + 0.008, 0.18);
         audio.volume = v;
-        if (v >= 0.2) clearInterval(fade);
-      }, 80);
+        if (v >= 0.18) clearInterval(fade);
+      }, 100);
       setOn(true);
     } else {
-      // Fade out
+      onRef.current = false;
       let v = audio.volume;
       const fade = setInterval(() => {
         v = Math.max(v - 0.02, 0);

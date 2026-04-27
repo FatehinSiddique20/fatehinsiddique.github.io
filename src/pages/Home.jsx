@@ -1,7 +1,6 @@
 import React from 'react';
 import Navbar from '../components/portfolio/Navbar';
-import HeroSection from '../components/portfolio/HeroSection';
-import TheScaleSection from '../components/portfolio/TheScaleSection';
+import HeroScaleTransition from '../components/portfolio/HeroScaleTransition';
 import IndustriesSection from '../components/portfolio/IndustriesSection';
 import ProjectsSection from '../components/portfolio/ProjectsSection';
 import WhyHireMeSection from '../components/portfolio/WhyHireMeSection';
@@ -18,10 +17,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background font-body text-foreground overflow-x-hidden">
       <Navbar />
-      {/* 1. Hero — cinematic opening */}
-      <HeroSection />
-      {/* 2. The Scale — operating context */}
-      <TheScaleSection />
+      {/* 1+2. Hero → Scale cinematic transition */}
+      <HeroScaleTransition />
       {/* 3. Industries — where the work happens */}
       <IndustriesSection />
       {/* 4. The Systems I Built — visual project cards */}
