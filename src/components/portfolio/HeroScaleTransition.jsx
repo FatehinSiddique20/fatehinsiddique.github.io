@@ -4,9 +4,8 @@ import HeroSection from './HeroSection';
 import TheScaleSection from './TheScaleSection';
 
 /**
- * Wraps Hero + Scale in a scroll-driven cinematic transition:
- * - Hero compresses vertically (scaleY) and fades out as you scroll
- * - Scale section slides up from below and sticks briefly (sticky feel)
+ * Layer 1 (top): Hero — slides UP and away on scroll
+ * Layer 2 (bottom): Scale — stays fixed underneath, revealed as Hero leaves
  */
 export default function HeroScaleTransition() {
   const containerRef = useRef(null);
@@ -16,31 +15,23 @@ export default function HeroScaleTransition() {
     offset: ['start start', 'end start'],
   });
 
-  // Hero: scale down and fade out as user scrolls through transition zone
-  const heroScale = useTransform(scrollYProgress, [0, 0.35], [1, 0.88]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
-  const heroY = useTransform(scrollYProgress, [0, 0.35], ['0%', '-8%']);
-
-  // Scale section: slide up into view
-  const scaleY = useTransform(scrollYProgress, [0.1, 0.45], ['60px', '0px']);
-  const scaleOpacity = useTransform(scrollYProgress, [0.1, 0.4], [0, 1]);
+  // Hero slides up and out
+  const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '-100%']);
 
   return (
-    <div ref={containerRef} className="relative">
-      {/* Hero — pinned with compression effect */}
+    // Container is 200vh so there's scroll room for the transition
+    <div ref={containerRef} style={{ height: '200vh' }}>
+      {/* Scale section — fixed at top, always underneath */}
+      <div className="sticky top-0 h-screen overflow-hidden">
+        <TheScaleSection />
+      </div>
+
+      {/* Hero — absolutely positioned on top, slides up on scroll */}
       <motion.div
-        style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
-        className="relative origin-top"
+        style={{ y: heroY }}
+        className="fixed top-0 left-0 w-full z-20 will-change-transform"
       >
         <HeroSection />
-      </motion.div>
-
-      {/* Scale section — slides up with a cinematic entrance */}
-      <motion.div
-        style={{ y: scaleY, opacity: scaleOpacity }}
-        className="relative z-10"
-      >
-        <TheScaleSection />
       </motion.div>
     </div>
   );
