@@ -129,10 +129,15 @@ export default function IndustriesSection() {
                   </div>
                   {ind.logoUrl && (
                     <a href={ind.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
-                      <img
-                        src={ind.logoUrl}
-                        alt={ind.title + ' logo'}
-                        className="h-8 max-w-[100px] object-contain opacity-80 hover:opacity-100 transition-opacity"
+                      <div
+                        className="w-10 h-10 rounded-lg opacity-80 hover:opacity-100 transition-opacity bg-white/10"
+                        style={{
+                          backgroundImage: `url(${ind.logoUrl})`,
+                          backgroundSize: 'contain',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'center',
+                        }}
+                        title={ind.title + ' logo'}
                       />
                     </a>
                   )}
