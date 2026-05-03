@@ -23,7 +23,7 @@ const industries = [
     animType: 'signal',
     link: 'https://www.banglalink.net/',
     linkLabel: 'banglalink.net',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/7/73/Banglalink_Logo.svg/320px-Banglalink_Logo.svg.png',
+    logoUrl: 'https://media.base44.com/images/public/69ecf4e8453eee0057e250fb/86352af02_banglalink-logo-png_seeklogo-647949.png',
   },
   {
     icon: Play,
@@ -42,7 +42,7 @@ const industries = [
     animType: 'tiles',
     link: 'https://toffeelive.com/en',
     linkLabel: 'toffeelive.com',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e2/Toffee_app_logo.png/250px-Toffee_app_logo.png',
+    logoUrl: 'https://media.base44.com/images/public/69ecf4e8453eee0057e250fb/3f8d5a6fb_unnamed.png',
   },
 ];
 
