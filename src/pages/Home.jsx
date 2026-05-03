@@ -1,4 +1,5 @@
 import React from 'react';
+import useLenis from '../hooks/useLenis';
 import Navbar from '../components/portfolio/Navbar';
 import HeroScaleTransition from '../components/portfolio/HeroScaleTransition';
 import IndustriesSection from '../components/portfolio/IndustriesSection';
@@ -14,6 +15,7 @@ import Footer from '../components/portfolio/Footer';
 import FloatingResumeCTA from '../components/portfolio/FloatingResumeCTA';
 
 export default function Home() {
+  useLenis();
   return (
     <div className="min-h-screen bg-background font-body text-foreground overflow-x-hidden">
       <Navbar />
