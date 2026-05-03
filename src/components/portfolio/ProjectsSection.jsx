@@ -226,16 +226,12 @@ function ProjectCard({ project, index, isVisible }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={isVisible ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: 0.07 * index, ease: EASING }}
-      className="group relative glass rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-0.5"
+      transition={{ duration: 0.5, delay: 0.06 * index, ease: EASING }}
+      className="group relative glass rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
       style={{ borderLeft: `2px solid ${project.accent}40` }}
     >
-      <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-        style={{ background: `radial-gradient(circle at 0% 50%, ${project.accent}08 0%, transparent 60%)` }}
-      />
 
       <div className="relative z-10 p-6 md:p-8 flex flex-col md:flex-row gap-6">
         {/* Text content */}

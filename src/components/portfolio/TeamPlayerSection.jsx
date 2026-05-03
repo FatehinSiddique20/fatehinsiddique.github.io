@@ -49,12 +49,13 @@ export default function TeamPlayerSection() {
   useEffect(() => {
     if (!isVisible) return;
     let idx = 0;
+    // Throttle to every 1.2s and limit to 4 pulses max
     pulseRef.current = setInterval(() => {
       const nodeIdx = (idx % (NODES.length - 1)) + 1;
       const node = NODES[nodeIdx];
-      setPulses(prev => [...prev.slice(-6), { id: Date.now(), nodeId: node.id }]);
+      setPulses(prev => [...prev.slice(-3), { id: Date.now(), nodeId: node.id }]);
       idx++;
-    }, 700);
+    }, 1200);
     return () => clearInterval(pulseRef.current);
   }, [isVisible]);
 
@@ -63,8 +64,7 @@ export default function TeamPlayerSection() {
   const cy = getPx(center.y, size.h);
 
   return (
-    <section id="team" className="relative py-16 md:py-22 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-500/2 to-transparent pointer-events-none" />
+    <section id="team" className="relative py-16 md:py-24">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
         <motion.div
           initial={{ opacity: 0, y: 40 }}

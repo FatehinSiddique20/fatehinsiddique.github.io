@@ -80,14 +80,13 @@ export default function WhyHireMeSection() {
   const [ref, isVisible] = useScrollReveal(0.07);
 
   return (
-    <section id="impact" className="relative py-16 md:py-24 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/2 to-transparent pointer-events-none" />
+    <section id="impact" className="relative py-16 md:py-24">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
 
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, ease: EASING }}
+          transition={{ duration: 0.6, ease: EASING }}
           className="text-center mb-10"
         >
           <span className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-4 block">Proof of Impact</span>
@@ -101,9 +100,9 @@ export default function WhyHireMeSection() {
 
         {/* BI Turnaround */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.1, ease: EASING }}
+          transition={{ duration: 0.5, delay: 0.1, ease: EASING }}
           className="glass rounded-2xl p-6 md:p-8 mb-6"
         >
           <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">AI Chatbot Impact</p>
@@ -167,9 +166,9 @@ export default function WhyHireMeSection() {
 
         {/* MAU Growth Chart */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.35, ease: EASING }}
+          transition={{ duration: 0.5, delay: 0.2, ease: EASING }}
           className="glass rounded-2xl p-6 md:p-8 mb-6"
         >
           <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">OTT Growth Impact</p>
@@ -197,9 +196,9 @@ export default function WhyHireMeSection() {
 
         {/* Data-to-Decision Pipeline */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.5, ease: EASING }}
+          transition={{ duration: 0.5, delay: 0.3, ease: EASING }}
           className="glass rounded-2xl p-6 md:p-8"
         >
           <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">System Design</p>

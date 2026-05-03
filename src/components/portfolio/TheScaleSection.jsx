@@ -41,15 +41,10 @@ function ScaleCard({ item, index, isVisible }) {
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
       animate={isVisible ? { opacity: 1, y: 0, scale: 1 } : {}}
       transition={{ duration: 0.65, delay: 0.08 * index, ease: EASING }}
-      whileHover={{ scale: 1.03, y: -4 }}
-      className="glass rounded-2xl p-6 md:p-8 flex flex-col items-center text-center transition-all duration-400 group cursor-default relative overflow-hidden"
-      style={{ boxShadow: `0 0 0 1px rgba(255,255,255,0.04)` }}
+      whileHover={{ scale: 1.02, y: -3 }}
+      className="glass rounded-2xl p-6 md:p-8 flex flex-col items-center text-center transition-all duration-300 cursor-default relative overflow-hidden"
+      style={{ border: `1px solid rgba(255,255,255,0.05)` }}
     >
-      {/* Hover glow */}
-      <div
-        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
-        style={{ boxShadow: `inset 0 0 30px ${item.glow}, 0 0 30px ${item.glow}` }}
-      />
       <div
         className="font-heading font-black text-4xl md:text-5xl mb-2 group-hover:scale-105 transition-transform duration-300"
         style={{ color: item.color, textShadow: `0 0 30px ${item.glow}` }}
@@ -66,14 +61,12 @@ function ProblemCard({ p, i, isVisible }) {
   return (
     <motion.div
       key={i}
-      initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
-      animate={isVisible ? { opacity: 1, x: 0 } : {}}
-      transition={{ duration: 0.65, delay: 0.45 + i * 0.1, ease: EASING }}
-      whileHover={{ scale: 1.02, y: -2 }}
-      className="glass rounded-2xl p-6 flex items-start gap-4 transition-all duration-400 group relative overflow-hidden"
+      initial={{ opacity: 0, y: 16 }}
+      animate={isVisible ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, delay: 0.3 + i * 0.08, ease: EASING }}
+      whileHover={{ scale: 1.01, y: -2 }}
+      className="glass rounded-2xl p-6 flex items-start gap-4 transition-all duration-300"
     >
-      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
-        style={{ boxShadow: `inset 0 0 20px ${p.color}12`, background: `radial-gradient(circle at 0% 50%, ${p.color}06, transparent 60%)` }} />
       <div
         className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
         style={{ background: `${p.color}15`, border: `1px solid ${p.color}30` }}
@@ -107,7 +100,7 @@ function ProblemCard({ p, i, isVisible }) {
 export default function TheScaleSection() {
   const [ref, isVisible] = useScrollReveal(0.08);
   return (
-    <section id="scale" className="relative w-full h-full flex flex-col justify-center overflow-hidden py-16 md:py-20">
+    <section id="scale" className="relative py-24 md:py-32 overflow-hidden" style={{ background: 'radial-gradient(ellipse at 50% 0%,rgba(6,182,212,0.05) 0%,transparent 60%)' }}>
       <div className="absolute inset-0 bg-gradient-hero opacity-60 pointer-events-none" />
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
         <motion.div

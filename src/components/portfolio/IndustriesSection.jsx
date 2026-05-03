@@ -105,11 +105,11 @@ export default function IndustriesSection() {
           {industries.map((ind, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={isVisible ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.7, delay: 0.15 * i, ease: EASING }}
-              whileHover={{ scale: 1.015, y: -3 }}
-              className={`group relative glass rounded-2xl p-8 border border-border/40 ${ind.border} hover:shadow-2xl ${ind.glow} transition-all duration-500 cursor-default overflow-hidden`}
+              transition={{ duration: 0.5, delay: 0.1 * i, ease: EASING }}
+              whileHover={{ scale: 1.01, y: -2 }}
+              className={`group relative glass rounded-2xl p-8 border border-border/40 ${ind.border} transition-all duration-300 cursor-default overflow-hidden`}
             >
               <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${ind.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 

@@ -184,12 +184,24 @@
   transition: transform 0.08s ease;
 }
 
-/* Smooth scroll */
-html {
-  scroll-behavior: smooth;
+/* (scroll-behavior and overflow-x already set above) */
+
+/* CSS variables */
+:root {
+  --nav-height: 80px;
 }
 
 /* Scroll margin so sections don't hide behind sticky navbar */
 section[id] {
-  scroll-margin-top: 80px;
+  scroll-margin-top: calc(var(--nav-height) + 16px);
+}
+
+/* Prevent horizontal overflow globally */
+body {
+  overflow-x: hidden;
+}
+
+/* Smooth scroll only for anchor navigation */
+html {
+  scroll-behavior: smooth;
 }
