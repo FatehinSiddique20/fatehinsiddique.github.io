@@ -130,7 +130,7 @@ export default function IndustriesSection() {
                   {ind.logoUrl && (
                     <a href={ind.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
                       <div
-                        className="w-10 h-10 rounded-lg opacity-80 hover:opacity-100 transition-opacity bg-white/10"
+                        className="w-10 h-10 rounded-lg opacity-80 hover:opacity-100 transition-opacity"
                         style={{
                           backgroundImage: `url(${ind.logoUrl})`,
                           backgroundSize: 'contain',
