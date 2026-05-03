@@ -18,6 +18,8 @@ const testimonials = [
     linkedin: 'https://www.linkedin.com/in/shupriya/',
     ariaLabel: 'Open Shupriya Kumar Nath recommendation on LinkedIn',
     accent: '#06b6d4',
+    logoUrl: 'https://logo.clearbit.com/amazon.com',
+    logoAlt: 'Amazon Web Services',
   },
   {
     name: 'Abu Saleh',
@@ -31,6 +33,8 @@ const testimonials = [
     linkedin: 'https://www.linkedin.com/in/saleh92/',
     ariaLabel: 'Open Abu Saleh recommendation on LinkedIn',
     accent: '#8b5cf6',
+    logoUrl: 'https://logo.clearbit.com/google.com',
+    logoAlt: 'Google',
   },
   {
     name: 'Rifah T Tanmee',
@@ -44,6 +48,8 @@ const testimonials = [
     linkedin: 'https://www.linkedin.com/in/rifahtasfia/?skipRedirect=true',
     ariaLabel: 'Open Rifah T Tanmee recommendation on LinkedIn',
     accent: '#06b6d4',
+    logoUrl: 'https://logo.clearbit.com/bracit.com.bd',
+    logoAlt: 'BRAC IT',
   },
   {
     name: 'Shaikh Shawon Arefin Shimon',
@@ -57,6 +63,8 @@ const testimonials = [
     linkedin: 'https://www.linkedin.com/in/shawonarefin/',
     ariaLabel: 'Open Shaikh Shawon Arefin Shimon recommendation on LinkedIn',
     accent: '#8b5cf6',
+    logoUrl: 'https://logo.clearbit.com/uwaterloo.ca',
+    logoAlt: 'University of Waterloo',
   },
 ];
 
@@ -137,7 +145,7 @@ function TestimonialCard({ t, index }) {
 
       {/* Author */}
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="font-heading font-bold text-sm text-foreground truncate">{t.name}</p>
           <p className="text-xs font-semibold mt-0.5" style={{ color: t.accent }}>{t.role}</p>
           <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug line-clamp-2">{t.context}</p>
@@ -148,9 +156,24 @@ function TestimonialCard({ t, index }) {
             {t.relationship}
           </span>
         </div>
-        <div className="flex items-center gap-1 flex-shrink-0 opacity-50 group-hover:opacity-100 transition-opacity duration-200 mt-0.5">
-          <Linkedin className="w-3.5 h-3.5 text-[#0A66C2]" />
-          <span className="text-[9px] text-muted-foreground font-medium whitespace-nowrap">View on LinkedIn</span>
+        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+          {/* Company logo */}
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden border border-border/30 bg-white/5"
+            title={t.logoAlt}
+          >
+            <img
+              src={t.logoUrl}
+              alt={t.logoAlt}
+              className="w-7 h-7 object-contain"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
+          {/* LinkedIn label */}
+          <div className="flex items-center gap-1 opacity-50 group-hover:opacity-100 transition-opacity duration-200">
+            <Linkedin className="w-3 h-3 text-[#0A66C2]" />
+            <span className="text-[9px] text-muted-foreground font-medium whitespace-nowrap">LinkedIn</span>
+          </div>
         </div>
       </div>
     </div>
