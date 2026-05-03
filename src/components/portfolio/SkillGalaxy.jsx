@@ -104,7 +104,7 @@ export default function SkillGalaxy() {
   }, [isVisible, dims]);
 
   return (
-    <section id="skills" className="relative py-24 md:py-32 overflow-hidden">
+    <section id="skills" className="relative py-16 md:py-24 overflow-hidden">
       {/* Space nebula background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-violet-500/6 rounded-full blur-[100px]" />

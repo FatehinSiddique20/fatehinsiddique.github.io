@@ -13,6 +13,8 @@ const navItems = [
   { label: 'Contact', href: '#contact' },
 ];
 
+
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -22,21 +24,29 @@ export default function Navbar() {
     const onScroll = () => {
       setScrolled(window.scrollY > 50);
       const sections = navItems.map(i => i.href.slice(1));
+      // Use a detection offset of 120px below the navbar
+      const offset = 120;
       for (let i = sections.length - 1; i >= 0; i--) {
         const el = document.getElementById(sections[i]);
-        if (el && el.getBoundingClientRect().top <= 150) {
+        if (el && el.getBoundingClientRect().top <= offset) {
           setActiveSection(sections[i]);
-          break;
+          return;
         }
       }
+      // If nothing matched (top of page), default to 'home'
+      setActiveSection('home');
     };
-    window.addEventListener('scroll', onScroll);
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   const handleClick = (href) => {
     setMobileOpen(false);
-    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+    const el = document.querySelector(href);
+    if (!el) return;
+    const navH = 80;
+    const top = el.getBoundingClientRect().top + window.scrollY - navH;
+    window.scrollTo({ top, behavior: 'smooth' });
   };
 
   return (

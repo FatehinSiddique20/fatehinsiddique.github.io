@@ -188,3 +188,8 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* Scroll margin so sections don't hide behind sticky navbar */
+section[id] {
+  scroll-margin-top: 80px;
+}

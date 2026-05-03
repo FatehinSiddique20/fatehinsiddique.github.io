@@ -107,14 +107,14 @@ function ProblemCard({ p, i, isVisible }) {
 export default function TheScaleSection() {
   const [ref, isVisible] = useScrollReveal(0.08);
   return (
-    <section id="scale" className="relative py-24 md:py-32 overflow-hidden">
+    <section id="scale" className="relative h-screen flex flex-col justify-center overflow-hidden py-20">
       <div className="absolute inset-0 bg-gradient-hero opacity-60 pointer-events-none" />
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: EASING }}
-          className="text-center mb-12"
+          className="text-center mb-8"
         >
           <span className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-4 block">Operating Scale</span>
           <h2 className="font-heading font-bold text-3xl md:text-5xl tracking-tight mb-3">
@@ -125,7 +125,7 @@ export default function TheScaleSection() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {scaleItems.map((item, i) => <ScaleCard key={i} item={item} index={i} isVisible={isVisible} />)}
         </div>
 
@@ -133,7 +133,7 @@ export default function TheScaleSection() {
           initial={{ opacity: 0, y: 40 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.35, ease: EASING }}
-          className="text-center mb-10"
+          className="text-center mb-5"
         >
           <span className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-4 block">Value Delivered</span>
           <h2 className="font-heading font-bold text-2xl md:text-4xl tracking-tight">

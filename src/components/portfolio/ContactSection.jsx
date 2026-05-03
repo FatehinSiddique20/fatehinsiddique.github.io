@@ -83,7 +83,7 @@ export default function ContactSection() {
   };
 
   return (
-    <section id="contact" className="relative py-28 md:py-36">
+    <section id="contact" className="relative py-16 md:py-24">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/2 to-violet-500/3" />
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
         <motion.div

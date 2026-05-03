@@ -87,7 +87,7 @@ export default function IndustriesSection() {
   const [ref, isVisible] = useScrollReveal(0.15);
 
   return (
-    <section id="industries" className="relative py-20 md:py-28">
+    <section id="industries" className="relative py-14 md:py-20">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
         <motion.div
           initial={{ opacity: 0, y: 40 }}

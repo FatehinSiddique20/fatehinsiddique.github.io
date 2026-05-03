@@ -105,13 +105,13 @@ export default function SuperpowersSection() {
   const [ref, isVisible] = useScrollReveal(0.1);
 
   return (
-    <section id="superpowers" className="relative py-28 md:py-36">
+    <section id="superpowers" className="relative py-16 md:py-24">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: EASING }}
-          className="text-center mb-16"
+          className="text-center mb-10"
         >
           <span className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-4 block">Expertise</span>
           <h2 className="font-heading font-bold text-3xl md:text-5xl tracking-tight">

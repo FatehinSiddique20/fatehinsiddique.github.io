@@ -385,7 +385,7 @@ export default function HeroSection() {
       <section
         id="home"
         ref={containerRef}
-        className="relative min-h-screen flex flex-col justify-between overflow-hidden"
+        className="relative h-screen flex flex-col justify-between overflow-hidden"
         style={{ background: 'radial-gradient(ellipse at 35% 40%,#020c22 0%,#010208 55%,#06001a 100%)' }}
       >
         <DataUniverse />
@@ -403,7 +403,7 @@ export default function HeroSection() {
         </div>
 
         {/* ── MAIN CONTENT ── */}
-        <div className="relative z-10 flex-1 flex items-center w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 pt-24 pb-8">
+        <div className="relative z-10 flex-1 flex items-center w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 pt-20 pb-4">
           <div className="flex flex-col lg:flex-row items-center w-full gap-8 lg:gap-4">
 
             {/* TEXT */}
@@ -531,10 +531,10 @@ export default function HeroSection() {
         </div>
 
         {/* METRIC CARDS */}
-        <div className="relative z-10 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 pb-16">
+        <div className="relative z-10 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 pb-8">
           <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1.2, delay: 1.8, ease: EASING }}
             className="hidden md:block h-px mb-2" style={{ background: 'linear-gradient(90deg,transparent,rgba(6,182,212,0.15),rgba(139,92,246,0.15),rgba(16,185,129,0.15),transparent)' }} />
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="hidden sm:flex flex-row gap-3">
             {metrics.map((m, i) => <MetricCard key={i} {...m} delay={1.9 + i * 0.12} />)}
           </div>
         </div>

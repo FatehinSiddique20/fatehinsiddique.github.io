@@ -63,7 +63,7 @@ export default function TeamPlayerSection() {
   const cy = getPx(center.y, size.h);
 
   return (
-    <section id="team" className="relative py-24 md:py-32 overflow-hidden">
+    <section id="team" className="relative py-16 md:py-22 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-500/2 to-transparent pointer-events-none" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
         <motion.div

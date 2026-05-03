@@ -80,7 +80,7 @@ export default function WhyHireMeSection() {
   const [ref, isVisible] = useScrollReveal(0.07);
 
   return (
-    <section id="why-hire" className="relative py-24 md:py-32 overflow-hidden">
+    <section id="impact" className="relative py-16 md:py-24 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/2 to-transparent pointer-events-none" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
 
@@ -88,7 +88,7 @@ export default function WhyHireMeSection() {
           initial={{ opacity: 0, y: 40 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: EASING }}
-          className="text-center mb-16"
+          className="text-center mb-10"
         >
           <span className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-4 block">Proof of Impact</span>
           <h2 className="font-heading font-bold text-3xl md:text-5xl tracking-tight mb-4">
