@@ -18,7 +18,7 @@ const testimonials = [
     linkedin: 'https://www.linkedin.com/in/shupriya/',
     ariaLabel: 'Open Shupriya Kumar Nath recommendation on LinkedIn',
     accent: '#06b6d4',
-    logoUrl: 'https://logo.clearbit.com/amazon.com',
+    logoUrl: 'https://media.base44.com/images/public/69ecf4e8453eee0057e250fb/774f613a7_image.png',
     logoAlt: 'Amazon Web Services',
   },
   {
@@ -33,7 +33,7 @@ const testimonials = [
     linkedin: 'https://www.linkedin.com/in/saleh92/',
     ariaLabel: 'Open Abu Saleh recommendation on LinkedIn',
     accent: '#8b5cf6',
-    logoUrl: 'https://logo.clearbit.com/google.com',
+    logoUrl: 'https://media.base44.com/images/public/69ecf4e8453eee0057e250fb/1ee0da3e4_image.png',
     logoAlt: 'Google',
   },
   {
@@ -48,7 +48,7 @@ const testimonials = [
     linkedin: 'https://www.linkedin.com/in/rifahtasfia/?skipRedirect=true',
     ariaLabel: 'Open Rifah T Tanmee recommendation on LinkedIn',
     accent: '#06b6d4',
-    logoUrl: 'https://logo.clearbit.com/bracit.com.bd',
+    logoUrl: 'https://media.base44.com/images/public/69ecf4e8453eee0057e250fb/5f9f7bdb5_image.png',
     logoAlt: 'BRAC IT',
   },
   {
@@ -63,7 +63,7 @@ const testimonials = [
     linkedin: 'https://www.linkedin.com/in/shawonarefin/',
     ariaLabel: 'Open Shaikh Shawon Arefin Shimon recommendation on LinkedIn',
     accent: '#8b5cf6',
-    logoUrl: 'https://logo.clearbit.com/uwaterloo.ca',
+    logoUrl: 'https://media.base44.com/images/public/69ecf4e8453eee0057e250fb/5cd3472cb_image.png',
     logoAlt: 'University of Waterloo',
   },
 ];
