@@ -9,6 +9,7 @@ import ExperienceSection from '../components/portfolio/ExperienceSection';
 import TeamPlayerSection from '../components/portfolio/TeamPlayerSection';
 import SuperpowersSection from '../components/portfolio/SuperpowersSection';
 import AwardsSection from '../components/portfolio/AwardsSection';
+import TestimonialsSection from '../components/portfolio/TestimonialsSection';
 import ContactSection from '../components/portfolio/ContactSection';
 import Footer from '../components/portfolio/Footer';
 import FloatingResumeCTA from '../components/portfolio/FloatingResumeCTA';
@@ -33,7 +34,9 @@ export default function Home() {
       <TeamPlayerSection />
       {/* 10. Superpowers — core capabilities */}
       <SuperpowersSection />
-      {/* 11. Awards */}
+      {/* 11. Testimonials */}
+      <TestimonialsSection />
+      {/* 12. Awards */}
       <AwardsSection />
       {/* 12. Contact */}
       <ContactSection />
