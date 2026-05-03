@@ -107,7 +107,7 @@ function ProblemCard({ p, i, isVisible }) {
 export default function TheScaleSection() {
   const [ref, isVisible] = useScrollReveal(0.08);
   return (
-    <section id="scale" className="relative h-screen flex flex-col justify-center overflow-hidden py-20">
+    <section id="scale" className="relative w-full h-full flex flex-col justify-center overflow-hidden py-16 md:py-20">
       <div className="absolute inset-0 bg-gradient-hero opacity-60 pointer-events-none" />
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" ref={ref}>
         <motion.div
