@@ -21,6 +21,9 @@ const industries = [
     iconBg: 'bg-cyan-500/10',
     accent: '#06b6d4',
     animType: 'signal',
+    link: 'https://www.banglalink.net/',
+    linkLabel: 'banglalink.net',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/7/73/Banglalink_Logo.svg/320px-Banglalink_Logo.svg.png',
   },
   {
     icon: Play,
@@ -37,6 +40,9 @@ const industries = [
     iconBg: 'bg-violet-500/10',
     accent: '#8b5cf6',
     animType: 'tiles',
+    link: 'https://toffeelive.com/en',
+    linkLabel: 'toffeelive.com',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e2/Toffee_app_logo.png/250px-Toffee_app_logo.png',
   },
 ];
 
@@ -117,8 +123,19 @@ export default function IndustriesSection() {
               {ind.animType === 'signal' ? <SignalWaves accent={ind.accent} /> : <FloatingTiles accent={ind.accent} />}
 
               <div className="relative z-10">
-                <div className={`w-12 h-12 rounded-xl ${ind.iconBg} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}>
-                  <ind.icon className={`w-6 h-6 ${ind.iconColor}`} />
+                <div className="flex items-start justify-between mb-5">
+                  <div className={`w-12 h-12 rounded-xl ${ind.iconBg} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                    <ind.icon className={`w-6 h-6 ${ind.iconColor}`} />
+                  </div>
+                  {ind.logoUrl && (
+                    <a href={ind.link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
+                      <img
+                        src={ind.logoUrl}
+                        alt={ind.title + ' logo'}
+                        className="h-8 max-w-[100px] object-contain opacity-80 hover:opacity-100 transition-opacity"
+                      />
+                    </a>
+                  )}
                 </div>
 
                 <h3 className="font-heading font-bold text-xl text-foreground mb-1">{ind.title}</h3>
@@ -129,13 +146,26 @@ export default function IndustriesSection() {
 
                 <p className="text-sm text-foreground/70 leading-relaxed mb-5">{ind.description}</p>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mb-4">
                   {ind.tags.map((tag, j) => (
                     <span key={j} className="px-3 py-1 rounded-lg bg-muted/40 text-xs font-medium text-muted-foreground border border-border/40">
                       {tag}
                     </span>
                   ))}
                 </div>
+
+                {ind.link && (
+                  <a
+                    href={ind.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold transition-colors hover:underline"
+                    style={{ color: ind.accent }}
+                  >
+                    🔗 {ind.linkLabel}
+                  </a>
+                )}
               </div>
             </motion.div>
           ))}
