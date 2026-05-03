@@ -184,7 +184,15 @@
   transition: transform 0.08s ease;
 }
 
-/* Smooth scroll */
+/* Ultra-smooth scroll */
 html {
   scroll-behavior: smooth;
+}
+
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  overscroll-behavior: none;
 }

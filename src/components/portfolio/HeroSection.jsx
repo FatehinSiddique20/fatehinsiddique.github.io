@@ -357,110 +357,7 @@ function MetricCard({ icon: Icon, value, title, subtitle, accent, sparkline, del
   );
 }
 
-// ── YouTube ambient sound (hidden iframe, starts at 6:13 = 373s) ───────────────
-// Video: https://www.youtube.com/watch?v=ce0cDkNYohk
-const YT_VIDEO_ID = 'ce0cDkNYohk';
-const YT_START_SEC = 373; // 6:13
 
-function SoundToggle() {
-  const [muted, setMuted] = useState(false); // starts unmuted (playing)
-  const iframeRef = useRef(null);
-  const playerRef = useRef(null);
-  const readyRef = useRef(false);
-
-  useEffect(() => {
-    // Load YouTube IFrame API
-    if (!window.YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      document.head.appendChild(tag);
-    }
-
-    const initPlayer = () => {
-      playerRef.current = new window.YT.Player('yt-ambient-player', {
-        videoId: YT_VIDEO_ID,
-        playerVars: {
-          autoplay: 1,
-          loop: 1,
-          playlist: YT_VIDEO_ID,
-          start: YT_START_SEC,
-          controls: 0,
-          disablekb: 1,
-          fs: 0,
-          modestbranding: 1,
-          rel: 0,
-        },
-        events: {
-          onReady: (e) => {
-            readyRef.current = true;
-            e.target.unMute();
-            e.target.setVolume(18);
-            e.target.playVideo();
-          },
-        },
-      });
-    };
-
-    if (window.YT && window.YT.Player) {
-      initPlayer();
-    } else {
-      window.onYouTubeIframeAPIReady = initPlayer;
-    }
-
-    return () => {
-      if (playerRef.current && playerRef.current.destroy) {
-        playerRef.current.destroy();
-      }
-    };
-  }, []);
-
-  const toggle = () => {
-    const p = playerRef.current;
-    if (!p || !readyRef.current) return;
-    if (!muted) {
-      p.mute();
-      setMuted(true);
-    } else {
-      p.unMute();
-      p.setVolume(18);
-      setMuted(false);
-    }
-  };
-
-  const on = !muted;
-
-  return (
-    <>
-      {/* Hidden YouTube iframe */}
-      <div
-        style={{ position: 'fixed', bottom: -1000, left: -1000, width: 1, height: 1, pointerEvents: 'none', opacity: 0 }}
-        aria-hidden
-      >
-        <div id="yt-ambient-player" />
-      </div>
-
-      {/* Sound toggle button */}
-      <motion.button
-        onClick={toggle}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 3, duration: 0.8 }}
-        whileHover={{ scale: 1.05 }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-mono font-medium"
-        style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(14px)', border: `1px solid ${on ? 'rgba(6,182,212,0.4)' : 'rgba(255,255,255,0.1)'}`, color: on ? '#06b6d4' : 'rgba(255,255,255,0.4)' }}
-      >
-        <motion.div className="flex gap-0.5 items-end h-3" animate={on ? { opacity: 1 } : { opacity: 0.4 }}>
-          {[2, 4, 3, 5, 2].map((h, i) => (
-            <motion.div key={i} className="w-0.5 rounded-full" style={{ background: on ? '#06b6d4' : '#fff', height: h * 2 }}
-              animate={on ? { scaleY: [1, 1.8, 0.6, 1.4, 1] } : { scaleY: 1 }}
-              transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.12, ease: 'easeInOut' }} />
-          ))}
-        </motion.div>
-        Sound: {on ? 'On' : 'Off'}
-      </motion.button>
-    </>
-  );
-}
 
 // ── MAIN ──────────────────────────────────────────────────────────────────────
 export default function HeroSection() {
@@ -485,7 +382,6 @@ export default function HeroSection() {
   return (
     <>
       <CinematicShutter onDone={() => setShutterDone(true)} />
-      <SoundToggle />
       <section
         id="home"
         ref={containerRef}
