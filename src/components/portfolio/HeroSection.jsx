@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, BarChart2, FileDown, Users, TrendingUp, Package, Star } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import InteractivePortraitHero from './InteractivePortraitHero';
 
 const PHOTO_URL = 'https://media.base44.com/images/public/69ecf4e8453eee0057e250fb/9c72b3a69_fatehindp.jpg';
 const RESUME_URL = 'https://media.base44.com/files/public/69ecf4e8453eee0057e250fb/e392c0f28_Fatehin_Resume_2026.pdf';
@@ -149,33 +150,7 @@ export default function HeroSection() {
             transition={{ duration: 0.7, delay: 0.3 }}
             className="w-full lg:w-1/2 flex justify-center lg:justify-end"
           >
-            <div className="relative">
-              {/* Glow behind image */}
-              <div className="absolute inset-0 rounded-3xl"
-                style={{ background: 'radial-gradient(circle,rgba(6,182,212,0.2) 0%,rgba(139,92,246,0.1) 50%,transparent 70%)', filter: 'blur(40px)', transform: 'scale(1.2)' }} />
-              <div
-                className="relative overflow-hidden"
-                style={{
-                  borderRadius: '40% 60% 55% 45% / 48% 44% 56% 52%',
-                  width: 'clamp(260px,36vw,440px)',
-                  height: 'clamp(300px,44vw,520px)',
-                  background: 'linear-gradient(135deg,rgba(6,182,212,0.7),rgba(139,92,246,0.5),rgba(59,130,246,0.7))',
-                  padding: '2px',
-                }}
-              >
-                <div className="w-full h-full overflow-hidden" style={{ borderRadius: 'inherit', background: '#05091a' }}>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
-                  <img
-                    src={PHOTO_URL}
-                    alt="Fatehin Siddique Chowdhury"
-                    className="w-full h-full object-cover object-top"
-                    style={{ filter: 'brightness(0.9) contrast(1.05) saturate(1.1)' }}
-                    width={440}
-                    height={520}
-                  />
-                </div>
-              </div>
-            </div>
+            <InteractivePortraitHero imageSrc={PHOTO_URL} />
           </motion.div>
         </div>
 
