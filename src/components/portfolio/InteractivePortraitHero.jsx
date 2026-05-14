@@ -1,162 +1,173 @@
-import React, { useRef, useEffect, useState, useMemo } from 'react';
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  useReducedMotion,
-} from 'framer-motion';
+import React, { useRef, useEffect, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import * as THREE from 'three';
 
-// ─── Particles ───────────────────────────────────────────────────────────────
-const PARTICLE_COLORS = [
-  'rgba(6,182,212,0.6)',
-  'rgba(6,182,212,0.4)',
-  'rgba(96,165,250,0.5)',
-  'rgba(59,130,246,0.45)',
-  'rgba(139,92,246,0.45)',
-  'rgba(167,139,250,0.4)',
-  'rgba(255,255,255,0.35)',
-];
+// ─── Vertex Shader ────────────────────────────────────────────────────────────
+const vertexShader = `
+  uniform float uTime;
+  uniform vec2 uMouse;
+  varying vec2 vUv;
+  varying vec3 vNormal;
+  varying vec3 vPosition;
 
-function useParticles(count) {
-  return useMemo(() => {
-    return Array.from({ length: count }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 3.5 + 1.2,
-      color: PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
-      duration: Math.random() * 6 + 5,
-      delay: Math.random() * 4,
-      dx: (Math.random() - 0.5) * 28,
-      dy: (Math.random() - 0.5) * 28,
-    }));
-  }, [count]);
-}
+  float smoothstepFn(float edge0, float edge1, float x) {
+    float t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+    return t * t * (3.0 - 2.0 * t);
+  }
 
-function Particles({ count, reducedMotion }) {
-  const particles = useParticles(count);
-  if (reducedMotion) return null;
+  void main() {
+    vUv = uv;
+    vec3 pos = position;
+
+    float xNorm = pos.x / 1.225;
+    float yNorm = pos.y / 1.625;
+    float radial = sqrt(xNorm * xNorm + yNorm * yNorm);
+    float edgeStrength = smoothstepFn(0.35, 0.85, radial);
+
+    pos.z += sin(pos.y * 2.4) * 0.035 + cos(pos.x * 3.0) * 0.025;
+    pos.z += edgeStrength * 0.16;
+    pos.x += sin(pos.y * 1.8) * edgeStrength * 0.035;
+    pos.y += cos(pos.x * 2.2) * edgeStrength * 0.025;
+
+    // Subtle mouse-driven warp
+    pos.z += uMouse.x * 0.06 * (1.0 - radial);
+    pos.z += uMouse.y * 0.04 * (1.0 - radial);
+
+    vPosition = pos;
+    vNormal = normalize(normalMatrix * normal);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  }
+`;
+
+// ─── Fragment Shader ──────────────────────────────────────────────────────────
+const fragmentShader = `
+  uniform sampler2D uTexture;
+  uniform float uTime;
+  uniform vec2 uMouse;
+  uniform float uHover;
+  varying vec2 vUv;
+  varying vec3 vNormal;
+  varying vec3 vPosition;
+
+  void main() {
+    vec2 center = vUv - 0.5;
+    float angle = atan(center.y, center.x);
+    float radius = length(center);
+
+    // Animated organic blob mask
+    float blob = 0.47
+      + 0.035 * sin(angle * 3.0 + uTime * 0.35)
+      + 0.025 * sin(angle * 5.0 - uTime * 0.25)
+      + 0.018 * sin(angle * 8.0 + uTime * 0.18);
+
+    float alpha = smoothstep(blob, blob - 0.025, radius);
+    if (alpha < 0.02) discard;
+
+    // Sample texture
+    vec4 texColor = texture2D(uTexture, vUv);
+
+    // Slight contrast & saturation boost
+    vec3 col = texColor.rgb;
+    float lum = dot(col, vec3(0.299, 0.587, 0.114));
+    col = mix(vec3(lum), col, 1.12); // saturation
+    col = (col - 0.5) * 1.07 + 0.5; // contrast
+    col = clamp(col, 0.0, 1.0);
+
+    // Cyan rim light near boundary
+    float rimFactor = smoothstep(blob - 0.09, blob - 0.005, radius);
+    vec3 cyan  = vec3(0.02, 0.71, 0.83);
+    vec3 violet = vec3(0.55, 0.36, 0.96);
+    vec3 blue  = vec3(0.23, 0.51, 0.96);
+    col += cyan * rimFactor * 0.55;
+    col += violet * rimFactor * 0.20;
+
+    // Glass highlight top-left
+    vec2 hlVec = vUv - vec2(0.0, 1.0);
+    float hlDist = length(hlVec);
+    float highlight = smoothstep(0.85, 0.3, hlDist) * 0.22;
+    col += vec3(1.0) * highlight;
+
+    // Subtle violet/blue ambient on dark areas
+    float darkness = 1.0 - lum;
+    col += violet * darkness * 0.08;
+    col += blue * darkness * 0.06;
+
+    // Hover glow
+    float hoverGlow = uHover * 0.12;
+    col += cyan * hoverGlow * (1.0 - radius * 1.5);
+
+    // Vignette
+    float vignette = 1.0 - smoothstep(0.28, 0.52, radius);
+    col *= mix(0.75, 1.0, vignette);
+
+    // Cinematic bottom fade
+    float bottomFade = smoothstep(0.1, 0.45, vUv.y);
+    alpha *= mix(0.3, 1.0, bottomFade);
+
+    gl_FragColor = vec4(col, texColor.a * alpha);
+  }
+`;
+
+// ─── Glow Shell Shaders ───────────────────────────────────────────────────────
+const glowVertexShader = `
+  uniform float uTime;
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const glowFragmentShader = `
+  uniform float uTime;
+  uniform vec3 uColor;
+  uniform float uOpacity;
+  varying vec2 vUv;
+
+  void main() {
+    vec2 center = vUv - 0.5;
+    float angle = atan(center.y, center.x);
+    float radius = length(center);
+
+    float blob = 0.47
+      + 0.035 * sin(angle * 3.0 + uTime * 0.35)
+      + 0.025 * sin(angle * 5.0 - uTime * 0.25)
+      + 0.018 * sin(angle * 8.0 + uTime * 0.18);
+
+    float alpha = smoothstep(blob, blob - 0.025, radius);
+    float glow = (1.0 - radius / blob) * alpha;
+    float pulse = 0.85 + 0.15 * sin(uTime * 0.9);
+    gl_FragColor = vec4(uColor, glow * uOpacity * pulse);
+  }
+`;
+
+// ─── CSS Fallback Portrait ────────────────────────────────────────────────────
+function FallbackPortrait({ imageSrc }) {
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ borderRadius: 'inherit' }}>
-      {particles.map((p) => (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full"
-          style={{
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            width: p.size,
-            height: p.size,
-            background: p.color,
-            boxShadow: `0 0 ${p.size * 3}px ${p.color}`,
-            willChange: 'transform, opacity',
-          }}
-          animate={{
-            x: [0, p.dx, 0],
-            y: [0, p.dy, 0],
-            opacity: [0.2, 1, 0.2],
-            scale: [1, 1.4, 1],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-      ))}
+    <div className="relative flex items-center justify-center" style={{ width: 395, height: 560 }}>
+      <div style={{
+        width: 395, height: 475,
+        borderRadius: '40% 60% 55% 45% / 48% 44% 56% 52%',
+        background: 'linear-gradient(135deg,rgba(6,182,212,0.9),rgba(59,130,246,0.45),rgba(139,92,246,0.75))',
+        padding: 2.5,
+        boxShadow: '0 0 60px rgba(6,182,212,0.3),0 0 120px rgba(139,92,246,0.15)',
+      }}>
+        <div style={{ width: '100%', height: '100%', borderRadius: 'inherit', overflow: 'hidden', background: '#05091a' }}>
+          <img src={imageSrc} alt="Fatehin Siddique Chowdhury"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top',
+              filter: 'brightness(0.92) contrast(1.06) saturate(1.08)' }} />
+        </div>
+      </div>
     </div>
-  );
-}
-
-// ─── Orbit Rings ─────────────────────────────────────────────────────────────
-function OrbitRings({ reducedMotion, hovered }) {
-  const duration = hovered ? 10 : 16;
-  return (
-    <div className="absolute inset-0 pointer-events-none flex items-center justify-center" style={{ zIndex: 2 }}>
-      <motion.svg
-        viewBox="0 0 500 500"
-        className="absolute w-full h-full"
-        style={{ overflow: 'visible' }}
-      >
-        {/* Ring 1 — cyan, wide ellipse, clockwise */}
-        <motion.ellipse
-          cx="250" cy="250" rx="220" ry="96"
-          fill="none"
-          stroke="rgba(6,182,212,0.55)"
-          strokeWidth="1.2"
-          strokeDasharray="18 10"
-          style={{ transform: 'rotateX(72deg)', transformOrigin: '250px 250px', transformStyle: 'preserve-3d' }}
-          animate={reducedMotion ? {} : { rotate: [0, 360] }}
-          transition={{ duration: duration, repeat: Infinity, ease: 'linear' }}
-        />
-        {/* Ring 2 — violet, counter-clockwise */}
-        <motion.ellipse
-          cx="250" cy="250" rx="196" ry="76"
-          fill="none"
-          stroke="rgba(139,92,246,0.42)"
-          strokeWidth="1"
-          strokeDasharray="28 14"
-          style={{ transform: 'rotateX(68deg) rotateZ(30deg)', transformOrigin: '250px 250px', transformStyle: 'preserve-3d' }}
-          animate={reducedMotion ? {} : { rotate: [0, -360] }}
-          transition={{ duration: duration * 1.25, repeat: Infinity, ease: 'linear' }}
-        />
-        {/* Ring 3 — blue, medium */}
-        <motion.ellipse
-          cx="250" cy="250" rx="240" ry="60"
-          fill="none"
-          stroke="rgba(59,130,246,0.35)"
-          strokeWidth="0.9"
-          strokeDasharray="12 20"
-          style={{ transform: 'rotateX(76deg) rotateZ(-18deg)', transformOrigin: '250px 250px', transformStyle: 'preserve-3d' }}
-          animate={reducedMotion ? {} : { rotate: [0, 360] }}
-          transition={{ duration: duration * 0.85, repeat: Infinity, ease: 'linear' }}
-        />
-        {/* Ring 4 — white glow, thin */}
-        <motion.ellipse
-          cx="250" cy="250" rx="168" ry="50"
-          fill="none"
-          stroke="rgba(255,255,255,0.18)"
-          strokeWidth="0.7"
-          strokeDasharray="6 18"
-          style={{ transform: 'rotateX(70deg) rotateZ(55deg)', transformOrigin: '250px 250px', transformStyle: 'preserve-3d' }}
-          animate={reducedMotion ? {} : { rotate: [0, -360] }}
-          transition={{ duration: duration * 1.6, repeat: Infinity, ease: 'linear' }}
-        />
-      </motion.svg>
-    </div>
-  );
-}
-
-// ─── Energy Nodes ─────────────────────────────────────────────────────────────
-function EnergyNode({ position, color, glowColor, reducedMotion }) {
-  return (
-    <motion.div
-      className="absolute rounded-full"
-      style={{
-        ...position,
-        width: 10,
-        height: 10,
-        background: color,
-        boxShadow: `0 0 14px 4px ${glowColor}`,
-        zIndex: 20,
-        willChange: 'transform, opacity',
-      }}
-      animate={reducedMotion ? {} : {
-        scale: [1, 1.6, 1],
-        opacity: [0.7, 1, 0.7],
-      }}
-      transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
-    />
   );
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function InteractivePortraitHero({ imageSrc }) {
+  const mountRef = useRef(null);
+  const sceneRef = useRef({});
   const reducedMotion = useReducedMotion();
-  const containerRef = useRef(null);
-  const [hovered, setHovered] = useState(false);
+  const [webglFailed, setWebglFailed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -166,268 +177,318 @@ export default function InteractivePortraitHero({ imageSrc }) {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Mouse tracking
-  const rawX = useMotionValue(0);
-  const rawY = useMotionValue(0);
+  useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return;
 
-  const springConfig = { stiffness: 80, damping: 18, mass: 0.6 };
-  const springX = useSpring(rawX, springConfig);
-  const springY = useSpring(rawY, springConfig);
+    const mobile = window.innerWidth < 768;
+    const W = mobile ? Math.min(window.innerWidth - 32, 360) : (window.innerWidth < 1024 ? 460 : 560);
+    const H = mobile ? 430 : (window.innerWidth < 1024 ? 540 : 620);
 
-  const rotateX = useTransform(springY, [-1, 1], ['8deg', '-8deg']);
-  const rotateY = useTransform(springX, [-1, 1], ['-10deg', '10deg']);
-  const translateX = useTransform(springX, [-1, 1], ['-14px', '14px']);
-  const translateY = useTransform(springY, [-1, 1], ['-10px', '10px']);
+    // ── Renderer ──
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
+    } catch (e) {
+      setWebglFailed(true);
+      return;
+    }
+    if (!renderer.getContext()) { setWebglFailed(true); return; }
 
-  const handleMouseMove = (e) => {
-    if (reducedMotion || isMobile) return;
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    rawX.set((e.clientX - cx) / (rect.width / 2));
-    rawY.set((e.clientY - cy) / (rect.height / 2));
-  };
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    renderer.setSize(W, H);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    renderer.setClearColor(0x000000, 0);
+    mount.appendChild(renderer.domElement);
 
-  const handleMouseLeave = () => {
-    rawX.set(0);
-    rawY.set(0);
-    setHovered(false);
-  };
+    // ── Scene / Camera ──
+    const scene = new THREE.Scene();
+    const fov = mobile ? 42 : 35;
+    const camera = new THREE.PerspectiveCamera(fov, W / H, 0.1, 100);
+    camera.position.set(0, 0, 5.2);
 
-  // Breathing animation
-  const breathingAnimation = reducedMotion ? {} : {
-    y: [0, -8, 0, 8, 0],
-    scale: [1, 1.018, 1.025, 1.018, 1],
-    rotateZ: [0, 0.6, 0, -0.6, 0],
-  };
+    // ── Lights ──
+    scene.add(new THREE.AmbientLight(0xffffff, 1.1));
+    const cyanLight = new THREE.PointLight(0x06b6d4, 1.5, 20);
+    cyanLight.position.set(2.4, 1.6, 2.2);
+    scene.add(cyanLight);
+    const violetLight = new THREE.PointLight(0x8b5cf6, 1.0, 20);
+    violetLight.position.set(-2.2, -1.4, 1.8);
+    scene.add(violetLight);
+    const blueLight = new THREE.PointLight(0x3b82f6, 1.2, 20);
+    blueLight.position.set(0, 1.8, -1.8);
+    scene.add(blueLight);
 
-  const breathingTransition = {
-    duration: 6.5,
-    repeat: Infinity,
-    ease: 'easeInOut',
-  };
+    // ── Portrait Group ──
+    const portraitGroup = new THREE.Group();
+    scene.add(portraitGroup);
 
-  // Sizes
-  const portraitW = isMobile ? 255 : 395;
-  const portraitH = isMobile ? 295 : 475;
-  const containerH = isMobile ? 410 : 560;
-  const particleCount = isMobile ? 18 : 60;
+    // Texture
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load(imageSrc, () => renderer.render(scene, camera));
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = false;
+
+    // Mouse uniform
+    const mouseUniform = new THREE.Vector2(0, 0);
+    const hoverUniform = { value: 0 };
+    const timeUniform = { value: 0 };
+
+    // Portrait mesh
+    const segs = mobile ? 60 : 90;
+    const planeGeo = new THREE.PlaneGeometry(2.45, 3.25, segs, Math.round(segs * 1.33));
+    const planeMat = new THREE.ShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      uniforms: {
+        uTexture: { value: texture },
+        uTime: timeUniform,
+        uMouse: { value: mouseUniform },
+        uHover: hoverUniform,
+      },
+      transparent: true,
+      depthWrite: false,
+      side: THREE.FrontSide,
+    });
+    const portraitMesh = new THREE.Mesh(planeGeo, planeMat);
+    portraitMesh.renderOrder = 10;
+    portraitGroup.add(portraitMesh);
+
+    // Glow shells behind
+    const glowGeo = new THREE.PlaneGeometry(2.45, 3.25, 8, 10);
+    const glowColors = [
+      { color: new THREE.Color(0x06b6d4), opacity: 0.22, z: -0.18, scale: 1.08 },
+      { color: new THREE.Color(0x8b5cf6), opacity: 0.18, z: -0.26, scale: 1.12 },
+      { color: new THREE.Color(0x3b82f6), opacity: 0.14, z: -0.34, scale: 1.16 },
+    ];
+    const glowMeshes = glowColors.map(({ color, opacity, z, scale }) => {
+      const mat = new THREE.ShaderMaterial({
+        vertexShader: glowVertexShader,
+        fragmentShader: glowFragmentShader,
+        uniforms: {
+          uTime: timeUniform,
+          uColor: { value: color },
+          uOpacity: { value: opacity },
+        },
+        transparent: true,
+        depthWrite: false,
+        side: THREE.FrontSide,
+      });
+      const mesh = new THREE.Mesh(glowGeo, mat);
+      mesh.position.z = z;
+      mesh.scale.setScalar(scale);
+      mesh.renderOrder = 5;
+      portraitGroup.add(mesh);
+      return mesh;
+    });
+
+    // ── Orbit Rings ──
+    const ringDefs = [
+      { color: 0x06b6d4, rx: 1.9, ry: 0.52, rotX: 1.25, rotZ: 0.15, opacity: 0.52, speed: 0.28, dir: 1 },
+      { color: 0x8b5cf6, rx: 1.72, ry: 0.44, rotX: 1.18, rotZ: 0.75, opacity: 0.42, speed: 0.20, dir: -1 },
+      { color: 0x3b82f6, rx: 2.05, ry: 0.36, rotX: 1.30, rotZ: -0.42, opacity: 0.32, speed: 0.34, dir: 1 },
+      { color: 0xffffff, rx: 1.45, ry: 0.32, rotX: 1.15, rotZ: 1.20, opacity: 0.18, speed: 0.15, dir: -1 },
+    ];
+    const rings = ringDefs.map(({ color, rx, ry, rotX, rotZ, opacity, speed, dir }) => {
+      const pts = [];
+      const segsR = 128;
+      for (let i = 0; i <= segsR; i++) {
+        const a = (i / segsR) * Math.PI * 2;
+        pts.push(new THREE.Vector3(Math.cos(a) * rx, Math.sin(a) * ry, 0));
+      }
+      const geo = new THREE.BufferGeometry().setFromPoints(pts);
+      const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity, depthWrite: false });
+      const line = new THREE.Line(geo, mat);
+      line.rotation.x = rotX;
+      line.rotation.z = rotZ;
+      line.renderOrder = 6;
+      scene.add(line);
+      return { line, mat, speed, dir, baseOpacity: opacity };
+    });
+
+    // ── Particles ──
+    const pCount = mobile ? 60 : 130;
+    const pPositions = new Float32Array(pCount * 3);
+    const pColors = new Float32Array(pCount * 3);
+    const pVelocities = [];
+    const pColors4 = [
+      new THREE.Color(0x06b6d4),
+      new THREE.Color(0x60a5fa),
+      new THREE.Color(0x3b82f6),
+      new THREE.Color(0x8b5cf6),
+      new THREE.Color(0xa78bfa),
+      new THREE.Color(0xffffff),
+    ];
+    for (let i = 0; i < pCount; i++) {
+      pPositions[i * 3]     = (Math.random() - 0.5) * 5.6;
+      pPositions[i * 3 + 1] = (Math.random() - 0.5) * 5.2;
+      pPositions[i * 3 + 2] = (Math.random() - 0.5) * 2.4;
+      const c = pColors4[Math.floor(Math.random() * pColors4.length)];
+      pColors[i * 3]     = c.r;
+      pColors[i * 3 + 1] = c.g;
+      pColors[i * 3 + 2] = c.b;
+      pVelocities.push({
+        x: (Math.random() - 0.5) * 0.004,
+        y: (Math.random() - 0.5) * 0.004,
+        z: (Math.random() - 0.5) * 0.003,
+        phase: Math.random() * Math.PI * 2,
+      });
+    }
+    const pGeo = new THREE.BufferGeometry();
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
+    pGeo.setAttribute('color', new THREE.BufferAttribute(pColors, 3));
+    const pMat = new THREE.PointsMaterial({
+      size: mobile ? 0.032 : 0.026,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.75,
+      depthWrite: false,
+      sizeAttenuation: true,
+    });
+    const particles = new THREE.Points(pGeo, pMat);
+    particles.renderOrder = 3;
+    scene.add(particles);
+
+    // ── Mouse tracking ──
+    let targetMouseX = 0, targetMouseY = 0;
+    let currentMouseX = 0, currentMouseY = 0;
+    let isHovered = false;
+
+    const onMouseMove = (e) => {
+      const rect = mount.getBoundingClientRect();
+      targetMouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+      targetMouseY = -((e.clientY - rect.top) / rect.height - 0.5) * 2;
+    };
+    const onMouseEnter = () => { isHovered = true; };
+    const onMouseLeave = () => { targetMouseX = 0; targetMouseY = 0; isHovered = false; };
+    mount.addEventListener('mousemove', onMouseMove);
+    mount.addEventListener('mouseenter', onMouseEnter);
+    mount.addEventListener('mouseleave', onMouseLeave);
+
+    // ── Resize ──
+    const onResize = () => {
+      const mob = window.innerWidth < 768;
+      const nW = mob ? Math.min(window.innerWidth - 32, 360) : (window.innerWidth < 1024 ? 460 : 560);
+      const nH = mob ? 430 : (window.innerWidth < 1024 ? 540 : 620);
+      camera.aspect = nW / nH;
+      camera.updateProjectionMatrix();
+      renderer.setSize(nW, nH);
+    };
+    window.addEventListener('resize', onResize);
+
+    // ── Animation loop ──
+    let rafId;
+    const clock = new THREE.Clock();
+
+    const animate = () => {
+      rafId = requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+      timeUniform.value = elapsed;
+
+      // Smooth mouse
+      const lerpFactor = 0.06;
+      currentMouseX += (targetMouseX - currentMouseX) * lerpFactor;
+      currentMouseY += (targetMouseY - currentMouseY) * lerpFactor;
+
+      mouseUniform.x = currentMouseX;
+      mouseUniform.y = currentMouseY;
+      hoverUniform.value += (isHovered ? 1.0 : 0.0 - hoverUniform.value) * 0.05;
+
+      if (!reducedMotion) {
+        // Portrait float & breathe
+        portraitGroup.position.y = Math.sin(elapsed * 0.7) * 0.06;
+        const breathScale = 1 + Math.sin(elapsed * 0.8) * 0.012;
+        portraitGroup.scale.setScalar(breathScale);
+
+        // Mouse-driven rotation
+        portraitGroup.rotation.y = currentMouseX * 0.18;
+        portraitGroup.rotation.x = -currentMouseY * 0.14;
+        portraitGroup.position.x = currentMouseX * 0.10;
+
+        // Camera parallax
+        camera.position.x = currentMouseX * 0.16;
+        camera.position.y = currentMouseY * 0.12;
+        camera.lookAt(0, 0, 0);
+
+        // Rings
+        rings.forEach(({ line, mat, speed, dir, baseOpacity }) => {
+          line.rotation.y += speed * 0.012 * dir;
+          mat.opacity = baseOpacity * (0.85 + 0.15 * Math.sin(elapsed * 0.9));
+        });
+
+        // Particles
+        const pos = pGeo.attributes.position;
+        for (let i = 0; i < pCount; i++) {
+          const v = pVelocities[i];
+          pos.array[i * 3]     += v.x + Math.sin(elapsed * 0.4 + v.phase) * 0.001 + currentMouseX * 0.0008;
+          pos.array[i * 3 + 1] += v.y + Math.cos(elapsed * 0.35 + v.phase) * 0.001 + currentMouseY * 0.0008;
+          pos.array[i * 3 + 2] += v.z;
+
+          // Wrap
+          if (pos.array[i * 3] >  2.8) pos.array[i * 3] = -2.8;
+          if (pos.array[i * 3] < -2.8) pos.array[i * 3] =  2.8;
+          if (pos.array[i * 3 + 1] >  2.6) pos.array[i * 3 + 1] = -2.6;
+          if (pos.array[i * 3 + 1] < -2.6) pos.array[i * 3 + 1] =  2.6;
+          if (pos.array[i * 3 + 2] >  1.2) pos.array[i * 3 + 2] = -1.2;
+          if (pos.array[i * 3 + 2] < -1.2) pos.array[i * 3 + 2] =  1.2;
+        }
+        pos.needsUpdate = true;
+        pMat.opacity = 0.65 + isHovered * 0.15;
+      }
+
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    sceneRef.current = { renderer, scene, clock };
+
+    // ── Cleanup ──
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', onResize);
+      mount.removeEventListener('mousemove', onMouseMove);
+      mount.removeEventListener('mouseenter', onMouseEnter);
+      mount.removeEventListener('mouseleave', onMouseLeave);
+      planeGeo.dispose();
+      planeMat.dispose();
+      glowGeo.dispose();
+      glowMeshes.forEach(m => m.material.dispose());
+      rings.forEach(({ line }) => { line.geometry.dispose(); line.material.dispose(); });
+      pGeo.dispose();
+      pMat.dispose();
+      texture.dispose();
+      renderer.dispose();
+      if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
+    };
+  }, [imageSrc, reducedMotion]);
+
+  if (webglFailed) return <FallbackPortrait imageSrc={imageSrc} />;
 
   return (
-    <div
-      ref={containerRef}
-      className="relative flex items-center justify-center select-none"
+    <motion.div
+      initial={{ opacity: 0, scale: 0.88, y: 24, filter: 'blur(16px)' }}
+      animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+      transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        width: portraitW + 120,
-        height: containerH,
-        perspective: '1200px',
-        cursor: 'default',
+        width: isMobile ? '100%' : undefined,
+        maxWidth: isMobile ? 360 : undefined,
+        flexShrink: 0,
       }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onMouseEnter={() => setHovered(true)}
     >
-      {/* Particle field */}
-      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-        <Particles count={particleCount} reducedMotion={reducedMotion} />
-      </div>
-
-      {/* Background radial glow */}
       <div
-        className="absolute rounded-full pointer-events-none"
+        ref={mountRef}
         style={{
-          width: portraitW * 1.6,
-          height: portraitH * 1.5,
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          background: 'radial-gradient(circle, rgba(6,182,212,0.26), rgba(139,92,246,0.14), transparent 68%)',
-          filter: `blur(${isMobile ? 30 : 50}px)`,
-          zIndex: 1,
+          width: isMobile ? '100%' : undefined,
+          height: isMobile ? 430 : undefined,
+          lineHeight: 0,
+          cursor: 'default',
+          userSelect: 'none',
         }}
       />
-
-      {/* Secondary blue glow */}
-      <div
-        className="absolute rounded-full pointer-events-none"
-        style={{
-          width: portraitW * 1.2,
-          height: portraitH * 1.1,
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          background: 'radial-gradient(circle, rgba(59,130,246,0.18), transparent 65%)',
-          filter: 'blur(36px)',
-          zIndex: 1,
-        }}
-      />
-
-      {/* Orbit rings */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          width: portraitW * 1.5,
-          height: portraitW * 1.5,
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 3,
-        }}
-      >
-        <OrbitRings reducedMotion={reducedMotion} hovered={hovered} />
-      </div>
-
-      {/* Energy nodes */}
-      <EnergyNode
-        position={{ top: '12%', right: '14%' }}
-        color="rgba(6,182,212,0.9)"
-        glowColor="rgba(6,182,212,0.6)"
-        reducedMotion={reducedMotion}
-      />
-      <EnergyNode
-        position={{ bottom: '14%', left: '12%' }}
-        color="rgba(139,92,246,0.9)"
-        glowColor="rgba(139,92,246,0.6)"
-        reducedMotion={reducedMotion}
-      />
-
-      {/* 3D portrait wrapper */}
-      <motion.div
-        style={{
-          rotateX: reducedMotion ? 0 : rotateX,
-          rotateY: reducedMotion ? 0 : rotateY,
-          translateX: reducedMotion ? 0 : translateX,
-          translateY: reducedMotion ? 0 : translateY,
-          transformStyle: 'preserve-3d',
-          zIndex: 10,
-          willChange: 'transform',
-        }}
-      >
-        {/* Blurred glow duplicate behind */}
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            width: portraitW,
-            height: portraitH,
-            borderRadius: '40% 60% 55% 45% / 48% 44% 56% 52%',
-            background: 'linear-gradient(135deg, rgba(6,182,212,0.35), rgba(59,130,246,0.25), rgba(139,92,246,0.30))',
-            filter: `blur(${isMobile ? 22 : 32}px)`,
-            transform: 'translateZ(-40px) scale(1.08)',
-            zIndex: -1,
-          }}
-        />
-
-        {/* Translucent glow shell */}
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            width: portraitW,
-            height: portraitH,
-            borderRadius: '40% 60% 55% 45% / 48% 44% 56% 52%',
-            background: 'linear-gradient(135deg, rgba(6,182,212,0.18), rgba(139,92,246,0.14))',
-            filter: 'blur(18px)',
-            transform: 'translateZ(-20px) scale(1.04)',
-            zIndex: -1,
-          }}
-        />
-
-        {/* Breathing portrait */}
-        <motion.div
-          animate={breathingAnimation}
-          transition={breathingTransition}
-          whileHover={reducedMotion ? {} : { scale: 1.035 }}
-          style={{ willChange: 'transform' }}
-        >
-          {/* Page-load reveal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.82, rotateY: -18, filter: 'blur(18px)' }}
-            animate={{ opacity: 1, scale: 1, rotateY: 0, filter: 'blur(0px)' }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {/* Gradient border wrapper */}
-            <div
-              style={{
-                width: portraitW,
-                height: portraitH,
-                borderRadius: '40% 60% 55% 45% / 48% 44% 56% 52%',
-                background: 'linear-gradient(135deg, rgba(6,182,212,0.9), rgba(59,130,246,0.45), rgba(139,92,246,0.75))',
-                padding: '2.5px',
-                boxShadow: hovered
-                  ? '0 0 60px rgba(6,182,212,0.35), 0 0 120px rgba(139,92,246,0.18), 0 40px 80px rgba(0,0,0,0.7)'
-                  : '0 0 40px rgba(6,182,212,0.22), 0 0 80px rgba(139,92,246,0.12), 0 30px 60px rgba(0,0,0,0.65)',
-                transition: 'box-shadow 0.5s ease',
-              }}
-            >
-              {/* Inner image container */}
-              <div
-                className="relative overflow-hidden w-full h-full"
-                style={{
-                  borderRadius: 'inherit',
-                  background: '#05091a',
-                }}
-              >
-                {/* The photo */}
-                <img
-                  src={imageSrc}
-                  alt="Fatehin Siddique Chowdhury"
-                  className="w-full h-full object-cover object-top"
-                  style={{
-                    filter: 'brightness(0.92) contrast(1.06) saturate(1.08)',
-                    willChange: 'transform',
-                  }}
-                  width={portraitW}
-                  height={portraitH}
-                  draggable={false}
-                />
-
-                {/* Overlay: bottom cinematic fade */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65), transparent 55%)', zIndex: 2 }}
-                />
-
-                {/* Overlay: edge vignette */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ background: 'radial-gradient(circle at 50% 25%, transparent 42%, rgba(0,0,0,0.42) 100%)', zIndex: 3 }}
-                />
-
-                {/* Overlay: top-left glass reflection */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.24), transparent 35%)',
-                    opacity: 0.28,
-                    mixBlendMode: 'screen',
-                    zIndex: 4,
-                  }}
-                />
-
-                {/* Overlay: cool cyan rim light */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: 'radial-gradient(circle at 78% 18%, rgba(6,182,212,0.24), transparent 30%)',
-                    zIndex: 5,
-                  }}
-                />
-
-                {/* Overlay: cursor-following highlight (static center fallback) */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: 'radial-gradient(circle at 50% 30%, rgba(6,182,212,0.42), rgba(139,92,246,0.22), transparent 52%)',
-                    opacity: hovered ? 0.55 : 0.25,
-                    transition: 'opacity 0.4s ease',
-                    zIndex: 6,
-                  }}
-                />
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      </motion.div>
-    </div>
+    </motion.div>
   );
 }
